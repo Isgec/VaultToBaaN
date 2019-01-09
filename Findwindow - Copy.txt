@@ -1,0 +1,28 @@
+Private Const GW_CHILD = 5
+Private Const GW_HWNDNEXT = 2
+Private Declare Function GetDesktopWindow Lib "user32" () As Long
+Private Declare Function GetWindow Lib "user32" (ByVal HWND As Long, ByVal wCmd As Long) As Long
+Private Declare Function GetWindowThreadProcessId Lib "user32" (ByVal HWND As Long, lpdwProcessId As Long) As Long
+Private Declare Function IsWindowVisible Lib "user32" (ByVal HWND As Long) As Long
+
+
+Public Function GetHwnd(ByVal ProcessID As Long) As Long
+
+    Dim lHwnd As Long, RetHwnd As Long, RetPID As Long
+    
+    lHwnd = GetDesktopWindow()
+    RetHwnd = GetWindow(lHwnd, GW_CHILD)
+    
+    Do While RetHwnd
+        If IsWindowVisible(RetHwnd) Then ' or use IsWindow
+            Call GetWindowThreadProcessId(RetHwnd, RetPID)
+            If RetPID = ProcessID Then
+                Exit Do
+            End If
+        End If
+        RetHwnd = GetWindow(RetHwnd, GW_HWNDNEXT)
+    Loop
+    
+    GetHwnd = RetHwnd
+
+End Function
