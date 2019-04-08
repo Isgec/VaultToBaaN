@@ -127,6 +127,7 @@
     <Compile Include="App_Common\TimerSupport.vb" />
     <Compile Include="App_Common\winApi.vb" />
     <Compile Include="App_Common\SQLDBCommon.vb" />
+    <Compile Include="App_DCR\_ediTmtlH.vb" />
     <Compile Include="App_DCR\_erpDCRDetail.vb" />
     <Compile Include="App_DCR\_erpDCRHeader.vb" />
     <Compile Include="App_DCR\_erpDesignAlerts.vb" />
