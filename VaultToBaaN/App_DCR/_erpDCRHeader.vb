@@ -341,45 +341,39 @@ Namespace SIS.ERP
       End Using
       Return _RecordCount
     End Function
-'		Autocomplete Method
+    '		Autocomplete Method
     Public Sub New(ByVal Reader As SqlDataReader)
-      On Error Resume Next
-      _DCRNo = CType(Reader("DCRNo"), String)
-      If Convert.IsDBNull(Reader("DCRDate")) Then
-        _DCRDate = String.Empty
-      Else
-        _DCRDate = CType(Reader("DCRDate"), String)
-      End If
-      If Convert.IsDBNull(Reader("DCRDescription")) Then
-        _DCRDescription = String.Empty
-      Else
-        _DCRDescription = CType(Reader("DCRDescription"), String)
-      End If
-      If Convert.IsDBNull(Reader("CreatedBy")) Then
-        _CreatedBy = String.Empty
-      Else
-        _CreatedBy = CType(Reader("CreatedBy"), String)
-      End If
-      If Convert.IsDBNull(Reader("CreatedName")) Then
-        _CreatedName = String.Empty
-      Else
-        _CreatedName = CType(Reader("CreatedName"), String)
-      End If
-      If Convert.IsDBNull(Reader("CreatedEMail")) Then
-        _CreatedEMail = String.Empty
-      Else
-        _CreatedEMail = CType(Reader("CreatedEMail"), String)
-      End If
-      If Convert.IsDBNull(Reader("ProjectID")) Then
-        _ProjectID = String.Empty
-      Else
-        _ProjectID = CType(Reader("ProjectID"), String)
-      End If
-      If Convert.IsDBNull(Reader("ProjectDescription")) Then
-        _ProjectDescription = String.Empty
-      Else
-        _ProjectDescription = CType(Reader("ProjectDescription"), String)
-      End If
+      Try
+        For Each pi As System.Reflection.PropertyInfo In Me.GetType.GetProperties
+          If pi.MemberType = Reflection.MemberTypes.Property Then
+            Try
+              Dim Found As Boolean = False
+              For I As Integer = 0 To Reader.FieldCount - 1
+                If Reader.GetName(I).ToLower = pi.Name.ToLower Then
+                  Found = True
+                  Exit For
+                End If
+              Next
+              If Found Then
+                If Convert.IsDBNull(Reader(pi.Name)) Then
+                  Select Case Reader.GetDataTypeName(Reader.GetOrdinal(pi.Name))
+                    Case "decimal"
+                      CallByName(Me, pi.Name, CallType.Let, "0.00")
+                    Case "bit"
+                      CallByName(Me, pi.Name, CallType.Let, Boolean.FalseString)
+                    Case Else
+                      CallByName(Me, pi.Name, CallType.Let, String.Empty)
+                  End Select
+                Else
+                  CallByName(Me, pi.Name, CallType.Let, Reader(pi.Name))
+                End If
+              End If
+            Catch ex As Exception
+            End Try
+          End If
+        Next
+      Catch ex As Exception
+      End Try
     End Sub
     Public Sub New()
     End Sub

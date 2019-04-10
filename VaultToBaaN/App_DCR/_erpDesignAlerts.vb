@@ -446,6 +446,16 @@ Namespace SIS.Design
       End If
       Dim oDoc As SIS.ERP.erpDCRDetail = SIS.ERP.erpDCRDetail.erpDCRDocument(DocumentID, LastRevision)
       If oDoc Is Nothing Then Return False
+      '=======Update Drawing New Revision Released Status=========
+      With oDoc
+        .Released = True
+        .ReleasedOn = Now
+        .NextRevision = RevisionNo
+        .DownloadKey = Guid.NewGuid().ToString
+        .DownloadExpiresOn = Now.AddDays(15)
+      End With
+      SIS.ERP.erpDCRDetail.UpdateData(oDoc)
+      '===========================================================
       DcrAlert(oDoc.DCRNo, oDoc, RevisionNo)
       Return True
     End Function
@@ -628,8 +638,10 @@ Namespace SIS.Design
         If Found Then
           oCol.ForeColor = Color.Red
           oCol.Font.Bold = True
+          oCol.Text = "<a href=http://cloud.isgec.co.in/WebCom1/DCR/EF_erpDCRDetail.aspx?DownloadKey=" & oDoc.DownloadKey & ">" & dd.DocumentID & "</a>"
+        Else
+          oCol.Text = dd.DocumentID
         End If
-        oCol.Text = dd.DocumentID
         oRow.Cells.Add(oCol)
         oCol = New TableCell
         If Found Then

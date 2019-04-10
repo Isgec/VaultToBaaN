@@ -119,6 +119,23 @@ Namespace SIS.ERP
       End Using
       Return Results
     End Function
+    Public Shared Function GetByDocumentKey(ByVal DocumentKey As String) As SIS.ERP.erpDCRDetail
+      Dim Results As SIS.ERP.erpDCRDetail = Nothing
+      Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetConnectionString())
+        Using Cmd As SqlCommand = Con.CreateCommand()
+          Cmd.CommandType = CommandType.Text
+          Cmd.CommandText = "select top 1 * from ERP_DCRDetail where DocumentKey='" & DocumentKey & "'"
+          Con.Open()
+          Dim Reader As SqlDataReader = Cmd.ExecuteReader()
+          While (Reader.Read())
+            Results = New SIS.ERP.erpDCRDetail(Reader)
+            Exit While
+          End While
+          Reader.Close()
+        End Using
+      End Using
+      Return Results
+    End Function
 
   End Class
 End Namespace

@@ -30,6 +30,11 @@ Namespace SIS.ERP
     Private _DocumentTitle As String = ""
     Private _ERP_DCRHeader1_DCRDescription As String = ""
     Private _FK_ERP_DCRDetail_DCRNo As SIS.ERP.erpDCRHeader = Nothing
+    Public Property Released As Boolean = False
+    Public Property NextRevision As String = ""
+    Public Property ReleasedOn As String = ""
+    Public Property DownloadKey As String = ""
+    Public Property DownloadExpiresOn As String = ""
     Public ReadOnly Property ForeColor() As System.Drawing.Color
       Get
         Dim mRet As System.Drawing.Color = Drawing.Color.Blue
@@ -485,7 +490,12 @@ Namespace SIS.ERP
           SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@BuyerIDinPOName", SqlDbType.NVarChar, 51, Iif(Record.BuyerIDinPOName = "", Convert.DBNull, Record.BuyerIDinPOName))
           SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@BuyerIDinPOEMail", SqlDbType.NVarChar, 51, Iif(Record.BuyerIDinPOEMail = "", Convert.DBNull, Record.BuyerIDinPOEMail))
           SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@SupplierName", SqlDbType.NVarChar, 101, Iif(Record.SupplierName = "", Convert.DBNull, Record.SupplierName))
-          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@DocumentTitle", SqlDbType.NVarChar, 101, Iif(Record.DocumentTitle = "", Convert.DBNull, Record.DocumentTitle))
+          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@DocumentTitle", SqlDbType.NVarChar, 101, IIf(Record.DocumentTitle = "", Convert.DBNull, Record.DocumentTitle))
+          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@Released", SqlDbType.Bit, 3, Record.Released)
+          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@NextRevision", SqlDbType.NVarChar, 6, IIf(Record.NextRevision = "", Convert.DBNull, Record.NextRevision))
+          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@ReleasedOn", SqlDbType.DateTime, 21, IIf(Record.ReleasedOn = "", Convert.DBNull, Record.ReleasedOn))
+          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@DownloadKey", SqlDbType.NVarChar, 51, IIf(Record.DownloadKey = "", Convert.DBNull, Record.DownloadKey))
+          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@DownloadExpiresOn", SqlDbType.DateTime, 21, IIf(Record.DownloadExpiresOn = "", Convert.DBNull, Record.DownloadExpiresOn))
           Cmd.Parameters.Add("@Return_DCRNo", SqlDbType.NVarChar, 11)
           Cmd.Parameters("@Return_DCRNo").Direction = ParameterDirection.Output
           Cmd.Parameters.Add("@Return_DocumentID", SqlDbType.NVarChar, 31)
@@ -555,6 +565,11 @@ Namespace SIS.ERP
           SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@BuyerIDinPOEMail", SqlDbType.NVarChar, 51, Iif(Record.BuyerIDinPOEMail = "", Convert.DBNull, Record.BuyerIDinPOEMail))
           SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@SupplierName", SqlDbType.NVarChar, 101, Iif(Record.SupplierName = "", Convert.DBNull, Record.SupplierName))
           SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@DocumentTitle", SqlDbType.NVarChar, 101, Iif(Record.DocumentTitle = "", Convert.DBNull, Record.DocumentTitle))
+          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@Released", SqlDbType.Bit, 3, Record.Released)
+          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@NextRevision", SqlDbType.NVarChar, 6, IIf(Record.NextRevision = "", Convert.DBNull, Record.NextRevision))
+          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@ReleasedOn", SqlDbType.DateTime, 21, IIf(Record.ReleasedOn = "", Convert.DBNull, Record.ReleasedOn))
+          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@DownloadKey", SqlDbType.NVarChar, 51, IIf(Record.DownloadKey = "", Convert.DBNull, Record.DownloadKey))
+          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@DownloadExpiresOn", SqlDbType.DateTime, 21, IIf(Record.DownloadExpiresOn = "", Convert.DBNull, Record.DownloadExpiresOn))
           Cmd.Parameters.Add("@RowCount", SqlDbType.Int)
           Cmd.Parameters("@RowCount").Direction = ParameterDirection.Output
           _RecordCount = -1
@@ -586,105 +601,37 @@ Namespace SIS.ERP
       Return _RecordCount
     End Function
     Public Sub New(ByVal Reader As SqlDataReader)
-      On Error Resume Next
-      _DCRNo = CType(Reader("DCRNo"), String)
-      _DocumentID = CType(Reader("DocumentID"), String)
-      _RevisionNo = CType(Reader("RevisionNo"), String)
-      If Convert.IsDBNull(Reader("IndentNo")) Then
-        _IndentNo = String.Empty
-      Else
-        _IndentNo = CType(Reader("IndentNo"), String)
-      End If
-      If Convert.IsDBNull(Reader("IndentLine")) Then
-        _IndentLine = String.Empty
-      Else
-        _IndentLine = CType(Reader("IndentLine"), String)
-      End If
-      If Convert.IsDBNull(Reader("LotItem")) Then
-        _LotItem = String.Empty
-      Else
-        _LotItem = CType(Reader("LotItem"), String)
-      End If
-      If Convert.IsDBNull(Reader("ItemDescription")) Then
-        _ItemDescription = String.Empty
-      Else
-        _ItemDescription = CType(Reader("ItemDescription"), String)
-      End If
-      If Convert.IsDBNull(Reader("IndenterID")) Then
-        _IndenterID = String.Empty
-      Else
-        _IndenterID = CType(Reader("IndenterID"), String)
-      End If
-      If Convert.IsDBNull(Reader("BuyerID")) Then
-        _BuyerID = String.Empty
-      Else
-        _BuyerID = CType(Reader("BuyerID"), String)
-      End If
-      If Convert.IsDBNull(Reader("OrderNo")) Then
-        _OrderNo = String.Empty
-      Else
-        _OrderNo = CType(Reader("OrderNo"), String)
-      End If
-      If Convert.IsDBNull(Reader("OrderLine")) Then
-        _OrderLine = String.Empty
-      Else
-        _OrderLine = CType(Reader("OrderLine"), String)
-      End If
-      If Convert.IsDBNull(Reader("SupplierID")) Then
-        _SupplierID = String.Empty
-      Else
-        _SupplierID = CType(Reader("SupplierID"), String)
-      End If
-      If Convert.IsDBNull(Reader("BuyerIDinPO")) Then
-        _BuyerIDinPO = String.Empty
-      Else
-        _BuyerIDinPO = CType(Reader("BuyerIDinPO"), String)
-      End If
-      If Convert.IsDBNull(Reader("IndenterName")) Then
-        _IndenterName = String.Empty
-      Else
-        _IndenterName = CType(Reader("IndenterName"), String)
-      End If
-      If Convert.IsDBNull(Reader("IndenterEMail")) Then
-        _IndenterEMail = String.Empty
-      Else
-        _IndenterEMail = CType(Reader("IndenterEMail"), String)
-      End If
-      If Convert.IsDBNull(Reader("BuyerName")) Then
-        _BuyerName = String.Empty
-      Else
-        _BuyerName = CType(Reader("BuyerName"), String)
-      End If
-      If Convert.IsDBNull(Reader("BuyerEMail")) Then
-        _BuyerEMail = String.Empty
-      Else
-        _BuyerEMail = CType(Reader("BuyerEMail"), String)
-      End If
-      If Convert.IsDBNull(Reader("BuyerIDinPOName")) Then
-        _BuyerIDinPOName = String.Empty
-      Else
-        _BuyerIDinPOName = CType(Reader("BuyerIDinPOName"), String)
-      End If
-      If Convert.IsDBNull(Reader("BuyerIDinPOEMail")) Then
-        _BuyerIDinPOEMail = String.Empty
-      Else
-        _BuyerIDinPOEMail = CType(Reader("BuyerIDinPOEMail"), String)
-      End If
-      If Convert.IsDBNull(Reader("SupplierName")) Then
-        _SupplierName = String.Empty
-      Else
-        _SupplierName = CType(Reader("SupplierName"), String)
-      End If
-      If Convert.IsDBNull(Reader("DocumentTitle")) Then
-        _DocumentTitle = String.Empty
-      Else
-        _DocumentTitle = CType(Reader("DocumentTitle"), String)
-      End If
-      If Convert.IsDBNull(Reader("ERP_DCRHeader1_DCRDescription")) Then
-        _ERP_DCRHeader1_DCRDescription = String.Empty
-      Else
-        _ERP_DCRHeader1_DCRDescription = CType(Reader("ERP_DCRHeader1_DCRDescription"), String)
-      End If
+      Try
+        For Each pi As System.Reflection.PropertyInfo In Me.GetType.GetProperties
+          If pi.MemberType = Reflection.MemberTypes.Property Then
+            Try
+              Dim Found As Boolean = False
+              For I As Integer = 0 To Reader.FieldCount - 1
+                If Reader.GetName(I).ToLower = pi.Name.ToLower Then
+                  Found = True
+                  Exit For
+                End If
+              Next
+              If Found Then
+                If Convert.IsDBNull(Reader(pi.Name)) Then
+                  Select Case Reader.GetDataTypeName(Reader.GetOrdinal(pi.Name))
+                    Case "decimal"
+                      CallByName(Me, pi.Name, CallType.Let, "0.00")
+                    Case "bit"
+                      CallByName(Me, pi.Name, CallType.Let, Boolean.FalseString)
+                    Case Else
+                      CallByName(Me, pi.Name, CallType.Let, String.Empty)
+                  End Select
+                Else
+                  CallByName(Me, pi.Name, CallType.Let, Reader(pi.Name))
+                End If
+              End If
+            Catch ex As Exception
+            End Try
+          End If
+        Next
+      Catch ex As Exception
+      End Try
     End Sub
     Public Sub New()
     End Sub
