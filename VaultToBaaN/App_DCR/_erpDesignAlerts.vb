@@ -37,7 +37,7 @@ Namespace SIS.Design
           .From = New MailAddress(oDcrH.CreatedEMail, oDcrH.CreatedName)
           .CC.Add(New MailAddress(oDcrH.CreatedEMail, oDcrH.CreatedName))
         End If
-        .Bcc.Add(New MailAddress("lalit@isgec.co.in", "Lalit Gupta"))
+        '.Bcc.Add(New MailAddress("lalit@isgec.co.in", "Lalit Gupta"))
         '.CC.Add(New MailAddress("harishkumar@isgec.co.in", "Harish Kumar"))
         '.CC.Add(New MailAddress("ajay.gupta@isgec.co.in", "Ajay Gupta"))
         .Bcc.Add(New MailAddress("dcrlog@isgec.co.in", "DCR Alerts Log"))
@@ -108,7 +108,7 @@ Namespace SIS.Design
                 x = gma(Issuer, aErr, "CT-Issuer-From")
                 If x IsNot Nothing Then
                   '.From = x
-                  If Not .CC.Contains(x) Then .CC.Add(x)
+                  'If Not .CC.Contains(x) Then .CC.Add(x)
                 End If
                 x = gma(Approver, aErr, "CT-Approver-To")
                 If x IsNot Nothing Then If Not .To.Contains(x) Then .To.Add(x)
@@ -119,7 +119,7 @@ Namespace SIS.Design
                 x = gma(Issuer, aErr, "IT-Issuer-From")
                 If x IsNot Nothing Then
                   '.From = x
-                  If Not .CC.Contains(x) Then .CC.Add(x)
+                  'If Not .CC.Contains(x) Then .CC.Add(x)
                 End If
                 x = gma(IssuedTo, aErr, "IT-IssuedTo-To")
                 If x IsNot Nothing Then If Not .To.Contains(x) Then .To.Add(x)
@@ -131,7 +131,7 @@ Namespace SIS.Design
                 x = gma(Issuer, aErr, "ST-Issuer-From")
                 If x IsNot Nothing Then
                   '.From = x
-                  If Not .CC.Contains(x) Then .CC.Add(x)
+                  'If Not .CC.Contains(x) Then .CC.Add(x)
                 End If
                 x = gma(Approver, aErr, "ST-Approver-To")
                 If x IsNot Nothing Then If Not .To.Contains(x) Then .To.Add(x)
@@ -153,7 +153,7 @@ Namespace SIS.Design
                 x = gma(Issuer, aErr, "VT-Issuer-From")
                 If x IsNot Nothing Then
                   '.From = x
-                  If Not .CC.Contains(x) Then .CC.Add(x)
+                  'If Not .CC.Contains(x) Then .CC.Add(x)
                 End If
                 Dim tmp As String = emp.GetReceiptCreator(oTmtl.t_tran)
                 If tmp = "SUPPLIER" Or tmp = "" Then

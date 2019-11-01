@@ -17,7 +17,12 @@
         Case "EPC"
           div = "EU210"
         Case "PC"
-          div = "EU220"
+          Select Case Left(dx.DocumentID, 2)
+            Case "FG", "FS"
+              div = "EU250"
+            Case Else
+              div = "EU220"
+          End Select
         Case "APC"
           div = "EU240"
       End Select

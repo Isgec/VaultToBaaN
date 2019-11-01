@@ -156,8 +156,12 @@ Public Class XmlProcessor
             End If
             Dim tmpXML As dataXML = dataXML.GetFile(tmpFile)
             Dim moveIn3 As Boolean = False
+            Dim moveIn4 As Boolean = False
             If tmpXML.VaultDBName = "ISGEC REDECAM" Then
               moveIn3 = True
+            End If
+            If tmpXML.VaultDBName = "ISGEC COVEMA" Then
+              moveIn4 = True
             End If
             If tmpXML.State = 1 Then Continue For 'process next time, If PDF file is available, this will never happen
             If tmpXML.State = 2 Or tmpXML.State = 3 Then 'ISGEC Specific Error in XML, Send E-Mail & Move file to error
@@ -199,6 +203,8 @@ Public Class XmlProcessor
                 Try
                   If moveIn3 Then
                     IO.File.Copy(tmpFile, _XMLProcessorCommonOutputPath & "\" & "3" & "\" & IO.Path.GetFileName(tmpFile), True)
+                  ElseIf moveIn4 Then
+                    IO.File.Copy(tmpFile, _XMLProcessorCommonOutputPath & "\" & "4" & "\" & IO.Path.GetFileName(tmpFile), True)
                   Else
                     IO.File.Copy(tmpFile, _XMLProcessorCommonOutputPath & "\" & i & "\" & IO.Path.GetFileName(tmpFile), True)
                   End If
@@ -208,6 +214,8 @@ Public Class XmlProcessor
                 Try
                   If moveIn3 Then
                     IO.File.Copy(_BomExportPDFOutputPath & "\" & i & "\" & tmpFileNoExt & ".pdf", _XMLProcessorCommonOutputPath & "\" & "3" & "\" & tmpFileNoExt & ".pdf", True)
+                  ElseIf moveIn4 Then
+                    IO.File.Copy(_BomExportPDFOutputPath & "\" & i & "\" & tmpFileNoExt & ".pdf", _XMLProcessorCommonOutputPath & "\" & "4" & "\" & tmpFileNoExt & ".pdf", True)
                   Else
                     IO.File.Copy(_BomExportPDFOutputPath & "\" & i & "\" & tmpFileNoExt & ".pdf", _XMLProcessorCommonOutputPath & "\" & i & "\" & tmpFileNoExt & ".pdf", True)
                   End If
@@ -217,6 +225,8 @@ Public Class XmlProcessor
                 Try
                   If moveIn3 Then
                     IO.File.Copy(IO.Path.ChangeExtension(tmpFile, "slz"), _XMLProcessorCommonOutputPath & "\" & "3" & "\" & IO.Path.GetFileNameWithoutExtension(tmpFile) & ".slz", True)
+                  ElseIf moveIn4 Then
+                    IO.File.Copy(IO.Path.ChangeExtension(tmpFile, "slz"), _XMLProcessorCommonOutputPath & "\" & "4" & "\" & IO.Path.GetFileNameWithoutExtension(tmpFile) & ".slz", True)
                   Else
                     IO.File.Copy(IO.Path.ChangeExtension(tmpFile, "slz"), _XMLProcessorCommonOutputPath & "\" & i & "\" & IO.Path.GetFileNameWithoutExtension(tmpFile) & ".slz", True)
                   End If

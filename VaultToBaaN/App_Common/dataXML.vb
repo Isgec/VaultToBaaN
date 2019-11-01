@@ -61,6 +61,8 @@ Public Class dataXML
     Get
       If VaultDBName = "ISGEC REDECAM" Then
         Return "700"
+      ElseIf VaultDBName = "ISGEC COVEMA" Then
+        Return "651"
       Else
         Return "200"
       End If
@@ -485,7 +487,7 @@ mErr:
           .To.Add(ToEMailID)
         End If
         .To.Add("adskvaultadmin@isgec.co.in")
-        .CC.Add("harishkumar@isgec.co.in")
+        '.CC.Add("harishkumar@isgec.co.in")
         .IsBodyHtml = True
         .Subject = fl.number & " Not Transfered in BaaN"
         If emailIDError Then
