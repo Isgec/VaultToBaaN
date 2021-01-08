@@ -341,13 +341,14 @@ Namespace SIS.EDI
         End Set
       End Property
     End Class
-    Public Shared Function TmtlEMailIDsForDCR(ByVal DCRNo As String) As List(Of SIS.EDI.ediTmtlH)
+    Public Shared Function TmtlEMailIDsForDCR(ByVal DCRNo As String, Comp As String) As List(Of SIS.EDI.ediTmtlH)
+      'Used
       Dim Results As New List(Of SIS.EDI.ediTmtlH)
       Dim Sql As String = ""
       Sql &= " select distinct tmH.*  "
-      Sql &= " from tdmisg131200 as tmH "
-      Sql &= " inner join tdmisg132200 as tmD on tmH.t_tran=tmD.t_tran "
-      Sql &= " inner join tdmisg115200 as dcD on tmD.t_docn=dcD.t_docd "
+      Sql &= " from tdmisg131" & Comp & " as tmH "
+      Sql &= " inner join tdmisg132" & Comp & " as tmD on tmH.t_tran=tmD.t_tran "
+      Sql &= " inner join tdmisg115" & Comp & " as dcD on tmD.t_docn=dcD.t_docd "
       Sql &= " where dcD.t_dcrn='" & DCRNo & "'"
       Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
         Using Cmd As SqlCommand = Con.CreateCommand()
@@ -363,13 +364,14 @@ Namespace SIS.EDI
       End Using
       Return Results
     End Function
-    Public Shared Function TmtlEMailIDsForDoc(ByVal DocID As String) As List(Of SIS.EDI.ediTmtlH)
+    Public Shared Function TmtlEMailIDsForDoc(ByVal DocID As String, Comp As String) As List(Of SIS.EDI.ediTmtlH)
+      'Used
       Dim Results As New List(Of SIS.EDI.ediTmtlH)
       Dim Sql As String = ""
       Sql &= " select distinct tmH.*  "
-      Sql &= " from tdmisg131200 as tmH "
-      Sql &= " inner join tdmisg132200 as tmD on tmH.t_tran=tmD.t_tran "
-      Sql &= " inner join tdmisg115200 as dcD on tmD.t_docn=dcD.t_docd "
+      Sql &= " from tdmisg131" & Comp & " as tmH "
+      Sql &= " inner join tdmisg132" & Comp & " as tmD on tmH.t_tran=tmD.t_tran "
+      Sql &= " inner join tdmisg115" & Comp & " as dcD on tmD.t_docn=dcD.t_docd "
       Sql &= " where dcD.t_docd='" & DocID & "'"
       Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
         Using Cmd As SqlCommand = Con.CreateCommand()
@@ -387,148 +389,10 @@ Namespace SIS.EDI
     End Function
 
     Public Sub New(ByVal Reader As SqlDataReader)
-      Try
-        For Each pi As System.Reflection.PropertyInfo In Me.GetType.GetProperties
-          If pi.MemberType = Reflection.MemberTypes.Property Then
-            Try
-              Dim Found As Boolean = False
-              For I As Integer = 0 To Reader.FieldCount - 1
-                If Reader.GetName(I).ToLower = pi.Name.ToLower Then
-                  Found = True
-                  Exit For
-                End If
-              Next
-              If Found Then
-                If Convert.IsDBNull(Reader(pi.Name)) Then
-                  Select Case Reader.GetDataTypeName(Reader.GetOrdinal(pi.Name))
-                    Case "decimal"
-                      CallByName(Me, pi.Name, CallType.Let, "0.00")
-                    Case "bit"
-                      CallByName(Me, pi.Name, CallType.Let, Boolean.FalseString)
-                    Case Else
-                      CallByName(Me, pi.Name, CallType.Let, String.Empty)
-                  End Select
-                Else
-                  CallByName(Me, pi.Name, CallType.Let, Reader(pi.Name))
-                End If
-              End If
-            Catch ex As Exception
-            End Try
-          End If
-        Next
-      Catch ex As Exception
-      End Try
+      SIS.SYS.SQLDatabase.DBCommon.NewObj(Me, Reader)
     End Sub
     Public Sub New()
     End Sub
-    Private Class emp
-      Public Property empID As Integer = 0
-      Public Property empName As String = ""
-      Public Property empEMail As String = ""
-
-      Public Shared Function GetEmp(ByVal empID As Integer) As emp
-        Dim mSql As String = ""
-        mSql = mSql & " select "
-        mSql = mSql & " emp1.t_nama as empName,"
-        mSql = mSql & " bpe1.t_mail as empEMail "
-        mSql = mSql & " from ttccom001200 as emp1 "
-        mSql = mSql & " left outer join tbpmdm001200 as bpe1 on emp1.t_emno=bpe1.t_emno "
-        mSql = mSql & " where emp1.t_emno = '" & empID & "'"
-        Dim tmp As emp = Nothing
-        Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
-          Using Cmd As SqlCommand = Con.CreateCommand()
-            Cmd.CommandType = CommandType.Text
-            Cmd.CommandText = mSql
-            tmp = New emp
-            Con.Open()
-            Dim Reader As SqlDataReader = Cmd.ExecuteReader()
-            If (Reader.Read()) Then
-              With tmp
-                .empID = empID
-                If Not Convert.IsDBNull(Reader("empName")) Then .empName = Reader("empName")
-                If Not Convert.IsDBNull(Reader("empEMail")) Then .empEMail = Reader("empEMail")
-              End With
-            End If
-            Reader.Close()
-          End Using
-        End Using
-        Return tmp
-      End Function
-      Public Shared Function GetProjectName(ByVal ProjectID As String) As String
-        Dim mSql As String = ""
-        mSql = mSql & " select top 1 "
-        mSql = mSql & " t_dsca "
-        mSql = mSql & " from ttcmcs052200 "
-        mSql = mSql & " where t_cprj = '" & ProjectID & "'"
-        Dim tmp As String = ""
-        Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
-          Using Cmd As SqlCommand = Con.CreateCommand()
-            Cmd.CommandType = CommandType.Text
-            Cmd.CommandText = mSql
-            Con.Open()
-            tmp = Cmd.ExecuteScalar()
-          End Using
-        End Using
-        Return tmp
-      End Function
-
-      Public Shared Function GetBPName(ByVal BPID As String) As String
-        Dim mSql As String = ""
-        mSql = mSql & " select top 1 "
-        mSql = mSql & " t_nama "
-        mSql = mSql & " from ttccom100200 "
-        mSql = mSql & " where t_bpid = '" & BPID & "'"
-        Dim tmp As String = ""
-        Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
-          Using Cmd As SqlCommand = Con.CreateCommand()
-            Cmd.CommandType = CommandType.Text
-            Cmd.CommandText = mSql
-            Con.Open()
-            tmp = Cmd.ExecuteScalar()
-          End Using
-        End Using
-        Return tmp
-      End Function
-      Public Shared Function GetIssuedVia(ByVal IssueID As String) As String
-        Dim mSql As String = ""
-        mSql = mSql & " select top 1 "
-        mSql = mSql & " t_dsca "
-        mSql = mSql & " from tdmisg125200 "
-        mSql = mSql & " where t_issu = '" & IssueID & "'"
-        Dim tmp As String = ""
-        Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
-          Using Cmd As SqlCommand = Con.CreateCommand()
-            Cmd.CommandType = CommandType.Text
-            Cmd.CommandText = mSql
-            Con.Open()
-            tmp = Cmd.ExecuteScalar()
-          End Using
-        End Using
-        Return tmp
-      End Function
-
-      Public Shared Function GetReceiptCreator(ByVal tmtlID As String) As String
-        Dim mSql As String = ""
-        mSql = mSql & " select "
-        mSql = mSql & " t_user as [user] "
-        mSql = mSql & " from tdmisg134200 "
-        mSql = mSql & " where t_trno = '" & tmtlID & "'"
-        Dim tmp As String = ""
-        Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
-          Using Cmd As SqlCommand = Con.CreateCommand()
-            Cmd.CommandType = CommandType.Text
-            Cmd.CommandText = mSql
-            Con.Open()
-            Dim Reader As SqlDataReader = Cmd.ExecuteReader()
-            If (Reader.Read()) Then
-              If Not Convert.IsDBNull(Reader("user")) Then tmp = Reader("user")
-            End If
-            Reader.Close()
-          End Using
-        End Using
-        Return tmp
-      End Function
-    End Class
 
   End Class
 

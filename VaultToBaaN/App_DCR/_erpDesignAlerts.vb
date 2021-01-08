@@ -10,10 +10,10 @@ Imports System.Web.UI.WebControls
 Imports System.Text
 Namespace SIS.Design
   Public Class Alerts
-    Public Shared Function DcrAlert(ByVal DCRNo As String, Optional ByVal oDoc As SIS.ERP.erpDCRDetail = Nothing, Optional ByVal ReleasedRevision As String = "") As Boolean
+    Public Shared Function DcrAlert(ByVal DCRNo As String, Comp As String, Optional ByVal oDoc As SIS.ERP.erpDCRDetail = Nothing, Optional ByVal ReleasedRevision As String = "") As Boolean
       Dim ForRelease As Boolean = IIf(oDoc Is Nothing, False, True)
       'First Check If E-Mail Already Sent for DCR ID
-      Dim oDCR As SIS.ERP.erpDCRHeader = SIS.ERP.erpDCRHeader.erpDCRHeaderGetByID(DCRNo)
+      Dim oDCR As SIS.ERP.erpDCRHeader = SIS.ERP.erpDCRHeader.erpDCRHeaderGetByID(DCRNo, Comp)
       If Not ForRelease Then
         If oDCR IsNot Nothing Then
           Return False
@@ -26,8 +26,8 @@ Namespace SIS.Design
       Dim oClient As SmtpClient = New SmtpClient("192.9.200.214", 25)
       Dim oMsg As System.Net.Mail.MailMessage = New System.Net.Mail.MailMessage()
       oClient.Credentials = New Net.NetworkCredential("adskvaultadmin", "isgec@123")
-      Dim oDcrH As SIS.ERP.erpDCRHeader = SIS.ERP.erpDCRHeader.BaaNDCRHeaderSelectList(DCRNo)
-      Dim oDcrD As List(Of SIS.ERP.erpDCRDetail) = SIS.ERP.erpDCRDetail.BaaNDCRDetailSelectList(DCRNo)
+      Dim oDcrH As SIS.ERP.erpDCRHeader = SIS.ERP.erpDCRHeader.BaaNDCRHeaderSelectList(DCRNo, Comp)
+      Dim oDcrD As List(Of SIS.ERP.erpDCRDetail) = SIS.ERP.erpDCRDetail.BaaNDCRDetailSelectList(DCRNo, Comp)
       With oMsg
         If oDcrH.CreatedEMail = String.Empty Then
           aErr.Add(oDcrH.CreatedBy & " " & oDcrH.CreatedName)
@@ -37,9 +37,6 @@ Namespace SIS.Design
           .From = New MailAddress(oDcrH.CreatedEMail, oDcrH.CreatedName)
           .CC.Add(New MailAddress(oDcrH.CreatedEMail, oDcrH.CreatedName))
         End If
-        '.Bcc.Add(New MailAddress("lalit@isgec.co.in", "Lalit Gupta"))
-        '.CC.Add(New MailAddress("harishkumar@isgec.co.in", "Harish Kumar"))
-        '.CC.Add(New MailAddress("ajay.gupta@isgec.co.in", "Ajay Gupta"))
         .Bcc.Add(New MailAddress("dcrlog@isgec.co.in", "DCR Alerts Log"))
         If Not ForRelease Then
           .Subject = "Drawing Change Initiated: PROJECT " & oDcrH.ProjectID & " " & oDcrH.ProjectDescription
@@ -92,14 +89,14 @@ Namespace SIS.Design
         '=============Transmittal============
         Dim aTmtls As List(Of SIS.EDI.ediTmtlH) = Nothing
         If oDoc Is Nothing Then
-          aTmtls = SIS.EDI.ediTmtlH.TmtlEMailIDsForDCR(DCRNo)
+          aTmtls = SIS.EDI.ediTmtlH.TmtlEMailIDsForDCR(DCRNo, Comp)
         Else
-          aTmtls = SIS.EDI.ediTmtlH.TmtlEMailIDsForDoc(oDoc.DocumentID)
+          aTmtls = SIS.EDI.ediTmtlH.TmtlEMailIDsForDoc(oDoc.DocumentID, Comp)
         End If
         For Each oTmtl As SIS.EDI.ediTmtlH In aTmtls
-          Dim Issuer As emp = emp.GetEmp(oTmtl.t_isby)
-          Dim Approver As emp = emp.GetEmp(oTmtl.t_apsu)
-          Dim Creator As emp = emp.GetEmp(oTmtl.t_user)
+          Dim Issuer As emp = emp.GetEmp(oTmtl.t_isby, Comp)
+          Dim Approver As emp = emp.GetEmp(oTmtl.t_apsu, Comp)
+          Dim Creator As emp = emp.GetEmp(oTmtl.t_user, Comp)
           Dim EMailIDError As String = ""
           Dim x As MailAddress = Nothing
           Try
@@ -107,19 +104,15 @@ Namespace SIS.Design
               Case tmtlType.Customer
                 x = gma(Issuer, aErr, "CT-Issuer-From")
                 If x IsNot Nothing Then
-                  '.From = x
-                  'If Not .CC.Contains(x) Then .CC.Add(x)
                 End If
                 x = gma(Approver, aErr, "CT-Approver-To")
                 If x IsNot Nothing Then If Not .To.Contains(x) Then .To.Add(x)
                 x = gma(Creator, aErr, "CT-Creator-CC")
                 If x IsNot Nothing Then If Not .CC.Contains(x) Then .CC.Add(x)
               Case tmtlType.Internal
-                Dim IssuedTo As emp = emp.GetEmp(oTmtl.t_logn)
+                Dim IssuedTo As emp = emp.GetEmp(oTmtl.t_logn, Comp)
                 x = gma(Issuer, aErr, "IT-Issuer-From")
                 If x IsNot Nothing Then
-                  '.From = x
-                  'If Not .CC.Contains(x) Then .CC.Add(x)
                 End If
                 x = gma(IssuedTo, aErr, "IT-IssuedTo-To")
                 If x IsNot Nothing Then If Not .To.Contains(x) Then .To.Add(x)
@@ -130,15 +123,13 @@ Namespace SIS.Design
               Case tmtlType.Site
                 x = gma(Issuer, aErr, "ST-Issuer-From")
                 If x IsNot Nothing Then
-                  '.From = x
-                  'If Not .CC.Contains(x) Then .CC.Add(x)
                 End If
                 x = gma(Approver, aErr, "ST-Approver-To")
                 If x IsNot Nothing Then If Not .To.Contains(x) Then .To.Add(x)
                 x = gma(Creator, aErr, "ST-Creator-CC")
                 If x IsNot Nothing Then If Not .CC.Contains(x) Then .CC.Add(x)
                 'Transmittal Site Address
-                Dim SiteIDs As String = emp.GetSiteEmailIDs(oTmtl.t_cprj, oTmtl.t_padr)
+                Dim SiteIDs As String = emp.GetSiteEmailIDs(oTmtl.t_cprj, oTmtl.t_padr, Comp)
                 If SiteIDs <> "" Then
                   Dim aIDs() As String = SiteIDs.Split(",;".ToCharArray)
                   For Each id As String In aIDs
@@ -152,15 +143,13 @@ Namespace SIS.Design
               Case tmtlType.Vendor
                 x = gma(Issuer, aErr, "VT-Issuer-From")
                 If x IsNot Nothing Then
-                  '.From = x
-                  'If Not .CC.Contains(x) Then .CC.Add(x)
                 End If
-                Dim tmp As String = emp.GetReceiptCreator(oTmtl.t_tran)
+                Dim tmp As String = emp.GetReceiptCreator(oTmtl.t_tran, Comp)
                 If tmp = "SUPPLIER" Or tmp = "" Then
                   x = gma(Approver, aErr, "VT-Approver-To")
                   If x IsNot Nothing Then If Not .To.Contains(x) Then .To.Add(x)
                 Else
-                  Dim tmpR As emp = emp.GetEmp(tmp)
+                  Dim tmpR As emp = emp.GetEmp(tmp, Comp)
                   x = gma(tmpR, aErr, "VT-ReceiptCreator-To")
                   If x IsNot Nothing Then If Not .To.Contains(x) Then .To.Add(x)
                   x = gma(Approver, aErr, "VT-Approver-CC")
@@ -169,13 +158,13 @@ Namespace SIS.Design
                 x = gma(Creator, aErr, "VT-Creator-CC")
                 If x IsNot Nothing Then If Not .CC.Contains(x) Then .CC.Add(x)
                 'GetPOIssuer From Joomla
-                Dim tmpPONo As String = emp.GetPONoOfReceipt(oTmtl.t_tran)
+                Dim tmpPONo As String = emp.GetPONoOfReceipt(oTmtl.t_tran, Comp)
                 If tmpPONo <> "" Then
-                  Dim POIssuer As String = emp.GetTCPOIssuer(tmpPONo)
-                  Dim POBuyer As String = emp.GetPOBuyer(tmpPONo)
-                  x = gma(emp.GetWebUser(POIssuer), aErr, "PO-Issuer")
+                  Dim POIssuer As String = emp.GetTCPOIssuer(tmpPONo, Comp)
+                  Dim POBuyer As String = emp.GetPOBuyer(tmpPONo, Comp)
+                  x = gma(emp.GetWebUser(POIssuer, Comp), aErr, "PO-Issuer")
                   If x IsNot Nothing Then If Not .CC.Contains(x) Then .CC.Add(x)
-                  x = gma(emp.GetWebUser(POBuyer), aErr, "PO-Buyer")
+                  x = gma(emp.GetWebUser(POBuyer, Comp), aErr, "PO-Buyer")
                   If x IsNot Nothing Then If Not .CC.Contains(x) Then .CC.Add(x)
                 End If
             End Select
@@ -190,7 +179,7 @@ Namespace SIS.Design
           .To.Add(New MailAddress("baansupport@isgec.co.in", "BaaN Support"))
         End If
         .IsBodyHtml = True
-        Dim oTbl As Table = GetTable(oDcrH, oDcrD, oDoc)
+        Dim oTbl As Table = GetTable(oDcrH, oDcrD, Comp, oDoc)
         Dim sb As StringBuilder = New StringBuilder()
         Dim sw As IO.StringWriter = New IO.StringWriter(sb)
         Dim writer As HtmlTextWriter = New HtmlTextWriter(sw)
@@ -246,9 +235,9 @@ Namespace SIS.Design
       If Not ForRelease Then
         If IndentFound Then
           'Insert in PerkDB
-          SIS.ERP.erpDCRHeader.InsertData(oDcrH)
+          SIS.ERP.erpDCRHeader.InsertData(oDcrH, Comp)
           For Each dcrD As SIS.ERP.erpDCRDetail In oDcrD
-            SIS.ERP.erpDCRDetail.InsertData(dcrD)
+            SIS.ERP.erpDCRDetail.InsertData(dcrD, Comp)
           Next
           'End Of Insert
         End If
@@ -267,13 +256,14 @@ Namespace SIS.Design
       Public Property empEMail As String = ""
       Public Property webUser As String = ""
 
-      Public Shared Function GetEmp(ByVal empID As Integer) As emp
+      Public Shared Function GetEmp(ByVal empID As Integer, Comp As String) As emp
+        'Used
         Dim mSql As String = ""
         mSql = mSql & " select "
         mSql = mSql & " emp1.t_nama as empName,"
         mSql = mSql & " bpe1.t_mail as empEMail "
-        mSql = mSql & " from ttccom001200 as emp1 "
-        mSql = mSql & " left outer join tbpmdm001200 as bpe1 on emp1.t_emno=bpe1.t_emno "
+        mSql = mSql & " from ttccom001" & Comp & " as emp1 "
+        mSql = mSql & " left outer join tbpmdm001" & Comp & " as bpe1 on emp1.t_emno=bpe1.t_emno "
         mSql = mSql & " where emp1.t_emno = '" & empID & "'"
         Dim tmp As emp = Nothing
         Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
@@ -296,11 +286,12 @@ Namespace SIS.Design
         Return tmp
       End Function
 
-      Public Shared Function GetReceiptCreator(ByVal tmtlID As String) As String
+      Public Shared Function GetReceiptCreator(ByVal tmtlID As String, Comp As String) As String
+        'Used
         Dim mSql As String = ""
         mSql = mSql & " select "
         mSql = mSql & " t_user as [user] "
-        mSql = mSql & " from tdmisg134200 "
+        mSql = mSql & " from tdmisg134" & Comp & " "
         mSql = mSql & " where t_trno = '" & tmtlID & "'"
         Dim tmp As String = ""
         Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
@@ -317,11 +308,12 @@ Namespace SIS.Design
         End Using
         Return tmp
       End Function
-      Public Shared Function GetPONoOfReceipt(ByVal tmtlID As String) As String
+      Public Shared Function GetPONoOfReceipt(ByVal tmtlID As String, Comp As String) As String
+        'Used
         Dim mSql As String = ""
         mSql = mSql & " select top 1 "
         mSql = mSql & " t_orno  "
-        mSql = mSql & " from tdmisg134200 "
+        mSql = mSql & " from tdmisg134" & Comp & " "
         mSql = mSql & " where t_trno = '" & tmtlID & "'"
         Dim tmp As String = ""
         Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString())
@@ -335,11 +327,12 @@ Namespace SIS.Design
         End Using
         Return tmp
       End Function
-      Public Shared Function GetSiteEmailIDs(ByVal ProjectID As String, ByVal AddressID As String) As String
+      Public Shared Function GetSiteEmailIDs(ByVal ProjectID As String, ByVal AddressID As String, Comp As String) As String
+        'Used
         Dim mSql As String = ""
         mSql = mSql & " select top 1 "
         mSql = mSql & " t_mail  "
-        mSql = mSql & " from tdmisg126200 "
+        mSql = mSql & " from tdmisg126" & Comp & " "
         mSql = mSql & " where t_cprj = '" & ProjectID & "'"
         mSql = mSql & " and   t_cadr = '" & AddressID & "'"
         Dim tmp As String = ""
@@ -355,14 +348,15 @@ Namespace SIS.Design
         Return tmp
       End Function
 
-      Public Shared Function GetTCPOIssuer(ByVal PONo As String) As String
+      Public Shared Function GetTCPOIssuer(ByVal PONo As String, Comp As String) As String
+        'Used
         Dim mSql As String = ""
         mSql = mSql & " select top 1 "
         mSql = mSql & " IssuedBy  "
         mSql = mSql & " from pak_po "
-        mSql = mSql & " where pofor='TC' and ponumber = '" & PONo & "'"
+        mSql = mSql & " where IssuedBy is not NULL and ponumber = '" & PONo & "'"
         Dim tmp As String = ""
-        Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetConnectionString())
+        Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetConnectionString(Comp))
           Using Cmd As SqlCommand = Con.CreateCommand()
             Cmd.CommandType = CommandType.Text
             Cmd.CommandText = mSql
@@ -373,14 +367,15 @@ Namespace SIS.Design
         End Using
         Return tmp
       End Function
-      Public Shared Function GetPOBuyer(ByVal PONo As String) As String
+      Public Shared Function GetPOBuyer(ByVal PONo As String, Comp As String) As String
+        'Used
         Dim mSql As String = ""
         mSql = mSql & " select top 1 "
         mSql = mSql & " BuyerID  "
         mSql = mSql & " from pak_po "
-        mSql = mSql & " where pofor='TC' and ponumber = '" & PONo & "'"
+        mSql = mSql & " where BuyerID is not NULL and ponumber = '" & PONo & "'"
         Dim tmp As String = ""
-        Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetConnectionString())
+        Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetConnectionString(Comp))
           Using Cmd As SqlCommand = Con.CreateCommand()
             Cmd.CommandType = CommandType.Text
             Cmd.CommandText = mSql
@@ -391,7 +386,8 @@ Namespace SIS.Design
         End Using
         Return tmp
       End Function
-      Public Shared Function GetWebUser(ByVal webUser As String) As emp
+      Public Shared Function GetWebUser(ByVal webUser As String, Comp As String) As emp
+        'Used
         Dim mSql As String = ""
         mSql = mSql & " select "
         mSql = mSql & " UserFullName as empName,"
@@ -399,7 +395,7 @@ Namespace SIS.Design
         mSql = mSql & " from aspnet_users "
         mSql = mSql & " where username = '" & webUser & "'"
         Dim tmp As emp = Nothing
-        Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetConnectionString())
+        Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetConnectionString(Comp))
           Using Cmd As SqlCommand = Con.CreateCommand()
             Cmd.CommandType = CommandType.Text
             Cmd.CommandText = mSql
@@ -436,7 +432,7 @@ Namespace SIS.Design
       Return x
     End Function
 
-    Public Shared Function RevisedAlert(ByVal DocumentID As String, ByVal RevisionNo As String) As Boolean
+    Public Shared Function RevisedAlert(ByVal DocumentID As String, ByVal RevisionNo As String, Comp As String) As Boolean
       'Find DCR of Previous Revision
       Dim LastRevision As String = ""
       If RevisionNo > "00" Then
@@ -444,7 +440,7 @@ Namespace SIS.Design
       Else
         Return False
       End If
-      Dim oDoc As SIS.ERP.erpDCRDetail = SIS.ERP.erpDCRDetail.erpDCRDocument(DocumentID, LastRevision)
+      Dim oDoc As SIS.ERP.erpDCRDetail = SIS.ERP.erpDCRDetail.erpDCRDocument(DocumentID, LastRevision, Comp)
       If oDoc Is Nothing Then Return False
       '=======Update Drawing New Revision Released Status=========
       With oDoc
@@ -454,12 +450,12 @@ Namespace SIS.Design
         .DownloadKey = Guid.NewGuid().ToString
         .DownloadExpiresOn = Now.AddDays(15)
       End With
-      SIS.ERP.erpDCRDetail.UpdateData(oDoc)
+      SIS.ERP.erpDCRDetail.UpdateData(oDoc, Comp)
       '===========================================================
-      DcrAlert(oDoc.DCRNo, oDoc, RevisionNo)
+      DcrAlert(oDoc.DCRNo, Comp, oDoc, RevisionNo)
       Return True
     End Function
-    Public Shared Function GetTable(ByVal dcrH As SIS.ERP.erpDCRHeader, ByVal dcrD As List(Of SIS.ERP.erpDCRDetail), Optional ByVal oDoc As SIS.ERP.erpDCRDetail = Nothing) As Table
+    Public Shared Function GetTable(ByVal dcrH As SIS.ERP.erpDCRHeader, ByVal dcrD As List(Of SIS.ERP.erpDCRDetail), Comp As String, Optional ByVal oDoc As SIS.ERP.erpDCRDetail = Nothing) As Table
 
       Dim oTbl As New Table
       oTbl.GridLines = GridLines.Both

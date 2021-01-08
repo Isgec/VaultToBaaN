@@ -7,7 +7,10 @@ Imports Microsoft.VisualBasic
 Namespace SIS.SYS.SQLDatabase
   Public Class DBCommon
     Implements IDisposable
+
     Public Shared Property BaaNLive As Boolean = True
+    Public Shared Property JoomlaLive As Boolean = True
+    Public Shared Property FinanceCompany As String = "200"
     Public Shared Function GetBaaNConnectionString() As String
       If BaaNLive Then
         Return "Data Source=192.9.200.129;Initial Catalog=inforerpdb;Integrated Security=False;User Instance=False;Persist Security Info=True;User ID=lalit;Password=scorpions"
@@ -18,18 +21,55 @@ Namespace SIS.SYS.SQLDatabase
     Public Shared Function GetVaultConnection(Optional ByVal vaultDB As String = "BOILER")
       Return "Data Source=192.9.200.119\autodeskvault;Initial Catalog=" & vaultDB & ";Integrated Security=False;User Instance=False;Persist Security Info=True;User ID=sa;Password=Isgec@123"
     End Function
-    Public Shared Function GetDevelopmentConnectionString() As String
-      Return "Data Source=192.168.28.136;Initial Catalog=IJTPerks;Integrated Security=False;User Instance=False;Persist Security Info=True;User ID=sa;Password=isgec12345"
-    End Function
     Public Shared Function GetConnectionString() As String
-      Return "Data Source=192.9.200.150;Initial Catalog=IJTPerks;Integrated Security=False;User Instance=False;Persist Security Info=True;User ID=sa;Password=isgec12345"
+      If JoomlaLive Then
+        Select Case FinanceCompany
+          Case "700"
+            Return "Data Source=192.9.200.150;Initial Catalog=REDECAM;Integrated Security=False;User Instance=False;Persist Security Info=True;User ID=sa;Password=isgec12345"
+          Case "651"
+            Return "Data Source=192.9.200.150;Initial Catalog=ICL;Integrated Security=False;User Instance=False;Persist Security Info=True;User ID=sa;Password=isgec12345"
+          Case Else
+            Return "Data Source=192.9.200.150;Initial Catalog=IJTPerks;Integrated Security=False;User Instance=False;Persist Security Info=True;User ID=sa;Password=isgec12345"
+        End Select
+      Else
+        Select Case FinanceCompany
+          Case "700"
+            Return "Data Source=.\LGSQL;Initial Catalog=REDECAM;Integrated Security=False;User Instance=False;Persist Security Info=True;User ID=sa;Password=isgec12345"
+          Case "651"
+            Return "Data Source=.\LGSQL;Initial Catalog=ICL;Integrated Security=False;User Instance=False;Persist Security Info=True;User ID=sa;Password=isgec12345"
+          Case Else
+            Return "Data Source=.\LGSQL;Initial Catalog=IJTPerks;Integrated Security=False;User Instance=False;Persist Security Info=True;User ID=sa;Password=isgec12345"
+        End Select
+      End If
     End Function
-    Public Shared Function GetLocalConnectionString() As String
-      Return "Data Source=192.9.200.150;Initial Catalog=HKK;Integrated Security=False;User Instance=False;Persist Security Info=True;User ID=sa;Password=isgec#12345"
+    Public Shared Function GetConnectionString(Comp As String) As String
+      If JoomlaLive Then
+        Select Case Comp
+          Case "700"
+            Return "Data Source=192.9.200.150;Initial Catalog=REDECAM;Integrated Security=False;User Instance=False;Persist Security Info=True;User ID=sa;Password=isgec12345"
+          Case "651"
+            Return "Data Source=192.9.200.150;Initial Catalog=ICL;Integrated Security=False;User Instance=False;Persist Security Info=True;User ID=sa;Password=isgec12345"
+          Case Else
+            Return "Data Source=192.9.200.150;Initial Catalog=IJTPerks;Integrated Security=False;User Instance=False;Persist Security Info=True;User ID=sa;Password=isgec12345"
+        End Select
+      Else
+        Select Case Comp
+          Case "700"
+            Return "Data Source=.\LGSQL;Initial Catalog=REDECAM;Integrated Security=False;User Instance=False;Persist Security Info=True;User ID=sa;Password=isgec12345"
+          Case "651"
+            Return "Data Source=.\LGSQL;Initial Catalog=ICL;Integrated Security=False;User Instance=False;Persist Security Info=True;User ID=sa;Password=isgec12345"
+          Case Else
+            Return "Data Source=.\LGSQL;Initial Catalog=IJTPerks;Integrated Security=False;User Instance=False;Persist Security Info=True;User ID=sa;Password=isgec12345"
+        End Select
+      End If
     End Function
-    Shared Sub New()
-
-    End Sub
+    Public Shared Function GetToolsConnectionString() As String
+      If JoomlaLive Then
+        Return "Data Source=192.9.200.150;Initial Catalog=IJTPerks;Integrated Security=False;User Instance=False;Persist Security Info=True;User ID=sa;Password=isgec12345"
+      Else
+        Return "Data Source=.\LGSQL;Initial Catalog=IJTPerks;Integrated Security=False;User Instance=False;Persist Security Info=True;User ID=sa;Password=isgec12345"
+      End If
+    End Function
     Public Shared Sub AddDBParameter(ByRef Cmd As SqlCommand, ByVal name As String, ByVal type As SqlDbType, ByVal size As Integer, ByVal value As Object)
       Dim Parm As SqlParameter = Cmd.CreateParameter()
       Parm.ParameterName = name
@@ -37,6 +77,45 @@ Namespace SIS.SYS.SQLDatabase
       Parm.Size = size
       Parm.Value = value
       Cmd.Parameters.Add(Parm)
+    End Sub
+    Public Shared Function NewObj(this As Object, Reader As SqlDataReader) As Object
+      Try
+        For Each pi As System.Reflection.PropertyInfo In this.GetType.GetProperties
+          If pi.MemberType = Reflection.MemberTypes.Property Then
+            Try
+              Dim Found As Boolean = False
+              For I As Integer = 0 To Reader.FieldCount - 1
+                If Reader.GetName(I).ToLower = pi.Name.ToLower Then
+                  Found = True
+                  Exit For
+                End If
+              Next
+              If Found Then
+                If Convert.IsDBNull(Reader(pi.Name)) Then
+                  Select Case Reader.GetDataTypeName(Reader.GetOrdinal(pi.Name))
+                    Case "decimal"
+                      CallByName(this, pi.Name, CallType.Let, "0.00")
+                    Case "bit"
+                      CallByName(this, pi.Name, CallType.Let, Boolean.FalseString)
+                    Case Else
+                      CallByName(this, pi.Name, CallType.Let, String.Empty)
+                  End Select
+                Else
+                  CallByName(this, pi.Name, CallType.Let, Reader(pi.Name))
+                End If
+              End If
+            Catch ex As Exception
+            End Try
+          End If
+        Next
+      Catch ex As Exception
+        Return Nothing
+      End Try
+      Return this
+    End Function
+
+    Shared Sub New()
+
     End Sub
 #Region " IDisposable Support "
     Private disposedValue As Boolean = False    ' To detect redundant calls

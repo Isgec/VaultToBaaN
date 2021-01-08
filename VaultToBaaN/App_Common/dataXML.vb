@@ -171,8 +171,29 @@ ret:
 
     With lf
       'Specific Logic
-      .VaultClientMachine = Left(.VaultClientMachine, 4)
-      .VaultUserName = Right("0000" & .VaultUserName.Replace("isgecnet\", ""), 4)
+      '======Old Code for User Name=====
+      '.VaultClientMachine = Left(.VaultClientMachine, 4)
+      '.VaultUserName = Right("0000" & .VaultUserName.Replace("isgecnet\", ""), 4)
+      '======New Code For User Name======
+      .VaultClientMachine = .VaultClientMachine.Trim
+      If .VaultClientMachine.Length >= 5 Then
+        If IsNumeric(Left(.VaultClientMachine, 5)) Then
+          .VaultClientMachine = Left(.VaultClientMachine, 5)
+        Else
+          If IsNumeric(Left(.VaultClientMachine, 4)) Then
+            .VaultClientMachine = Left(.VaultClientMachine, 4)
+          End If
+        End If
+      ElseIf .VaultClientMachine.Length = 4 Then
+        If IsNumeric(Left(.VaultClientMachine, 4)) Then
+          .VaultClientMachine = Left(.VaultClientMachine, 4)
+        End If
+      End If
+      .VaultUserName = .VaultUserName.Trim.Replace("isgecnet\", "")
+      If .VaultUserName.Length < 4 Then
+        .VaultUserName = Right("0000" & .VaultUserName, 4)
+      End If
+      '==========End of New Code==========
       If .VaultUserName <> .VaultClientMachine Then
         .VaultUserName = .VaultClientMachine
       End If

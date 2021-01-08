@@ -139,87 +139,56 @@ Public Class LockUnlockService
   End Sub
   Public Overrides Sub Process()
     Try
-      'Process Lock Folder
-      'Console.WriteLine("hello I am Lock-UnLock")
-      Dim aFiles() As String = IO.Directory.GetFiles(_ERPLnLockFolder, "*.xml", IO.SearchOption.TopDirectoryOnly)
-      If aFiles.Length > 0 Then
-        For Each tmpFile As String In aFiles
-          If Not dataXML.IsFileAvailable(tmpFile) Then Continue For
-          Dim tmpFileName As String = IO.Path.GetFileName(tmpFile)
-          Dim fl As luXMLFile = Nothing
-          Try
-            fl = luXMLFile.GetFile(tmpFile)
-            logMsg("Started==> " & fl.Action & " : " & fl.MainFile)
-          Catch ex As Exception
-          End Try
-          If fl Is Nothing Then Continue For
-          '*****Master Document List Insert/Update
-          Try
-            mstDocList.InsUpdMasterDocumentList(fl)
-          Catch ex As Exception
-            logMsg("MDL==> " & ex.Message)
-          End Try
-          '*****End of Master Document List
-          '*****Design Alert
-          Try
-            Select Case fl.Action.ToLower
-              Case "released"
-                SIS.Design.Alerts.RevisedAlert(fl.DocumentID, fl.RevNo)
-              Case "revised"
-                SIS.Design.Alerts.DcrAlert(fl.DCRNo)
-            End Select
-          Catch ex As Exception
-          End Try
-          '*****End of Design Alert
-          If Login(fl) Then
-            logMsg("Logged In==> " & fl.VaultDB)
-            If ExecuteAction(fl) Then
-              logMsg("Process Over Successful ==> " & fl.MainFile)
-              Try
-                IO.File.Copy(tmpFile, _LockProcessedPath & "\" & tmpFileName, True)
-                IO.File.Delete(tmpFile)
-              Catch ex As Exception
-              End Try
-            Else 'If Error
-              logMsg("Error: Process Failed ==> " & fl.MainFile)
-              logMsg("**************************")
-              Try
-                IO.File.Copy(tmpFile, _LockErrorPath & "\" & tmpFileName, True)
-                IO.File.Delete(tmpFile)
-              Catch ex As Exception
-              End Try
-            End If
-            VaultUtil.LogOut()
-          End If 'Login
-        Next ' Go to Next File For Processing
-      End If ' Files.count > 0
-      'Process Unlock Folder
-      aFiles = IO.Directory.GetFiles(_ERPLnUnlockFolder, "*.xml", IO.SearchOption.TopDirectoryOnly)
-      If aFiles.Length > 0 Then
-        For Each tmpFile As String In aFiles
-          If Not dataXML.IsFileAvailable(tmpFile) Then Continue For
-          Dim tmpFileName As String = IO.Path.GetFileName(tmpFile)
-          Dim fl As luXMLFile = Nothing
-          Try
-            fl = luXMLFile.GetFile(tmpFile)
-            logMsg("Started==> " & fl.Action & " : " & fl.MainFile)
-          Catch ex As Exception
-          End Try
-          If fl Is Nothing Then Continue For
-          '*****Master Document List Insert/Update
-          Try
-            mstDocList.InsUpdMasterDocumentList(fl)
-          Catch ex As Exception
+      ActualProcess(_ERPLnLockFolder, _LockErrorPath, _LockProcessedPath)
+      ActualProcess(_ERPLnUnlockFolder, _UnlockErrorPath, _UnlockProcessedPath)
+    Catch ex As Exception
+    End Try
+  End Sub
 
+  Private Sub ActualProcess(mainFolder As String, errFolder As String, okFolder As String)
+    Try
+      Dim aFiles() As String = IO.Directory.GetFiles(mainFolder, "*.xml", IO.SearchOption.TopDirectoryOnly)
+      If aFiles.Length > 0 Then
+        For Each tmpFile As String In aFiles
+          If Not dataXML.IsFileAvailable(tmpFile) Then Continue For
+          Dim tmpFileName As String = IO.Path.GetFileName(tmpFile)
+          Dim fl As luXMLFile = Nothing
+          Try
+            fl = luXMLFile.GetFile(tmpFile)
+            logMsg("Started==> " & fl.Action & " : " & fl.MainFile)
+          Catch ex As Exception
           End Try
-          '*****End of Master Document List
+          If fl Is Nothing Then Continue For
+          'Bug: 08-10-2020
+          If fl.DocumentID.Length <= 22 Then
+            logMsg("Error==> " & fl.DocumentID & " length is less than 22 char.: " & fl.MainFile)
+            Try
+              IO.File.Copy(tmpFile, errFolder & "\" & tmpFileName, True)
+              IO.File.Delete(tmpFile)
+            Catch ex As Exception
+            End Try
+            Continue For
+          End If
+          'Bug====================
+          ''*****Master Document List Insert/Update
+          'Try
+          '  mstDocList.InsUpdMasterDocumentList(fl, fl.ERPCompany)
+          'Catch ex As Exception
+          '  logMsg("MDL==> " & ex.Message)
+          'End Try
+          ''*****End of Master Document List
           '*****Design Alert
           Try
             Select Case fl.Action.ToLower
               Case "released"
-                SIS.Design.Alerts.RevisedAlert(fl.DocumentID, fl.RevNo)
+                SIS.Design.Alerts.RevisedAlert(fl.DocumentID, fl.RevNo, fl.ERPCompany)
+                Try
+                  SIS.PAK.erpData.erpPO.UpdateIssuedPO(fl.DocumentID, fl.RevNo, fl.ERPCompany)
+                Catch ex1 As Exception
+                  logMsg("Err Issued PO: " & ex1.Message)
+                End Try
               Case "revised"
-                SIS.Design.Alerts.DcrAlert(fl.DCRNo)
+                SIS.Design.Alerts.DcrAlert(fl.DCRNo, fl.ERPCompany)
             End Select
           Catch ex As Exception
           End Try
@@ -229,7 +198,7 @@ Public Class LockUnlockService
             If ExecuteAction(fl) Then
               logMsg("Process Over Successful ==> " & fl.MainFile)
               Try
-                IO.File.Copy(tmpFile, _UnlockProcessedPath & "\" & tmpFileName, True)
+                IO.File.Copy(tmpFile, okFolder & "\" & tmpFileName, True)
                 IO.File.Delete(tmpFile)
               Catch ex As Exception
               End Try
@@ -237,7 +206,7 @@ Public Class LockUnlockService
               logMsg("Error: Process Failed ==> " & fl.MainFile)
               logMsg("**************************")
               Try
-                IO.File.Copy(tmpFile, _UnlockErrorPath & "\" & tmpFileName, True)
+                IO.File.Copy(tmpFile, errFolder & "\" & tmpFileName, True)
                 IO.File.Delete(tmpFile)
               Catch ex As Exception
               End Try
@@ -249,6 +218,7 @@ Public Class LockUnlockService
     Catch ex As Exception
     End Try
   End Sub
+
   Private Function ExecuteAction(ByVal fl As luXMLFile) As Boolean
     Dim mRet As Boolean = False
     Dim StateToSet As String = ""

@@ -44,36 +44,6 @@ Namespace SIS.td
     Private _t_bloc As Int32 = 0
     Private _t_appr As Int32 = 0
     Private _t_link As Int32 = 0
-    Public ReadOnly Property ForeColor() As System.Drawing.Color
-      Get
-        Dim mRet As System.Drawing.Color = Drawing.Color.Blue
-        Try
-					mRet = GetColor()
-        Catch ex As Exception
-        End Try
-        Return mRet
-      End Get
-    End Property
-    Public ReadOnly Property Visible() As Boolean
-      Get
-        Dim mRet As Boolean = True
-        Try
-					mRet = GetVisible()
-        Catch ex As Exception
-        End Try
-        Return mRet
-      End Get
-    End Property
-    Public ReadOnly Property Enable() As Boolean
-      Get
-        Dim mRet As Boolean = True
-        Try
-					mRet = GetEnable()
-        Catch ex As Exception
-        End Try
-        Return mRet
-      End Get
-    End Property
     Public Property t_docn() As String
       Get
         Return _t_docn
@@ -382,82 +352,12 @@ Namespace SIS.td
         _t_link = value
       End Set
     End Property
-    Public Readonly Property DisplayField() As String
-      Get
-        Return ""
-      End Get
-    End Property
-    Public Readonly Property PrimaryKey() As String
-      Get
-        Return _t_docn & "|" & _t_revn
-      End Get
-    End Property
-    Public Shared Property RecordCount() As Integer
-      Get
-        Return _RecordCount
-      End Get
-      Set(ByVal value As Integer)
-        _RecordCount = value
-      End Set
-    End Property
-    Public Class PKMasterDocument
-			Private _t_docn As String = ""
-			Private _t_revn As String = ""
-			Public Property t_docn() As String
-				Get
-					Return _t_docn
-				End Get
-				Set(ByVal value As String)
-					_t_docn = value
-				End Set
-			End Property
-			Public Property t_revn() As String
-				Get
-					Return _t_revn
-				End Get
-				Set(ByVal value As String)
-					_t_revn = value
-				End Set
-			End Property
-    End Class
-    <DataObjectMethod(DataObjectMethodType.Select)> _
-    Public Shared Function MasterDocumentSelectList(ByVal OrderBy As String) As List(Of SIS.td.MasterDocument)
-      Dim Results As List(Of SIS.td.MasterDocument) = Nothing
-      Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString)
-        Using Cmd As SqlCommand = Con.CreateCommand()
-          Cmd.CommandType = CommandType.StoredProcedure
-          Cmd.CommandText = "spMasterDocumentSelectList"
-          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@LoginID", SqlDbType.NvarChar, 9, "")
-          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@OrderBy", SqlDbType.NVarChar, 50, OrderBy)
-          Cmd.Parameters.Add("@RecordCount", SqlDbType.Int)
-          Cmd.Parameters("@RecordCount").Direction = ParameterDirection.Output
-          _RecordCount = -1
-          Results = New List(Of SIS.td.MasterDocument)()
-          Con.Open()
-          Dim Reader As SqlDataReader = Cmd.ExecuteReader()
-          While (Reader.Read())
-            Results.Add(New SIS.td.MasterDocument(Reader))
-          End While
-          Reader.Close()
-          _RecordCount = Cmd.Parameters("@RecordCount").Value
-        End Using
-      End Using
-      Return Results
-    End Function
-    <DataObjectMethod(DataObjectMethodType.Select)> _
-    Public Shared Function MasterDocumentGetNewRecord() As SIS.td.MasterDocument
-      Return New SIS.td.MasterDocument()
-    End Function
-    <DataObjectMethod(DataObjectMethodType.Select)> _
-    Public Shared Function MasterDocumentGetByID(ByVal t_docn As String, ByVal t_revn As String) As SIS.td.MasterDocument
+    Public Shared Function MasterDocumentGetByID(ByVal t_docn As String, ByVal t_revn As String, Comp As String) As SIS.td.MasterDocument
       Dim Results As SIS.td.MasterDocument = Nothing
       Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString)
         Using Cmd As SqlCommand = Con.CreateCommand()
-          Cmd.CommandType = CommandType.StoredProcedure
-          Cmd.CommandText = "spMasterDocumentSelectByID"
-          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@t_docn", SqlDbType.VarChar, t_docn.ToString.Length, t_docn)
-          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@t_revn", SqlDbType.VarChar, t_revn.ToString.Length, t_revn)
-          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@LoginID", SqlDbType.NvarChar, 9, "")
+          Cmd.CommandType = CommandType.Text
+          Cmd.CommandText = "SELECT * FROM tdmisg121" & Comp & " WHERE t_docn = '" & t_docn & "' AND t_revn = '" & t_revn & "'"
           Con.Open()
           Dim Reader As SqlDataReader = Cmd.ExecuteReader()
           If Reader.Read() Then
@@ -468,90 +368,11 @@ Namespace SIS.td
       End Using
       Return Results
     End Function
-    <DataObjectMethod(DataObjectMethodType.Select)> _
-    Public Shared Function MasterDocumentSelectList(ByVal StartRowIndex As Integer, ByVal MaximumRows As Integer, ByVal OrderBy As String, ByVal SearchState As Boolean, ByVal SearchText As String) As List(Of SIS.td.MasterDocument)
-      Dim Results As List(Of SIS.td.MasterDocument) = Nothing
+    Public Shared Function InsertData(ByVal Record As SIS.td.MasterDocument, Comp As String) As SIS.td.MasterDocument
       Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString)
         Using Cmd As SqlCommand = Con.CreateCommand()
           Cmd.CommandType = CommandType.StoredProcedure
-          If SearchState Then
-            Cmd.CommandText = "spMasterDocumentSelectListSearch"
-            SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@KeyWord", SqlDbType.NVarChar, 250, SearchText)
-          Else
-            Cmd.CommandText = "spMasterDocumentSelectListFilteres"
-          End If
-          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@StartRowIndex", SqlDbType.Int, -1, StartRowIndex)
-          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@MaximumRows", SqlDbType.Int, -1, MaximumRows)
-          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@LoginID", SqlDbType.NvarChar, 9, "")
-          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@OrderBy", SqlDbType.NVarChar, 50, OrderBy)
-          Cmd.Parameters.Add("@RecordCount", SqlDbType.Int)
-          Cmd.Parameters("@RecordCount").Direction = ParameterDirection.Output
-          _RecordCount = -1
-          Results = New List(Of SIS.td.MasterDocument)()
-          Con.Open()
-          Dim Reader As SqlDataReader = Cmd.ExecuteReader()
-          While (Reader.Read())
-            Results.Add(New SIS.td.MasterDocument(Reader))
-          End While
-          Reader.Close()
-          _RecordCount = Cmd.Parameters("@RecordCount").Value
-        End Using
-      End Using
-      Return Results
-    End Function
-    Public Shared Function MasterDocumentSelectCount(ByVal SearchState As Boolean, ByVal SearchText As String) As Integer
-      Return _RecordCount
-    End Function
-    'Select By ID One Record Filtered Overloaded GetByID
-    <DataObjectMethod(DataObjectMethodType.Insert, True)> _
-    Public Shared Function MasterDocumentInsert(ByVal Record As SIS.td.MasterDocument) As SIS.td.MasterDocument
-      Dim _Rec As SIS.td.MasterDocument = SIS.td.MasterDocument.MasterDocumentGetNewRecord()
-      With _Rec
-        .t_docn = Record.t_docn
-        .t_revn = Record.t_revn
-        .t_cprj = Record.t_cprj
-        .t_dsca = Record.t_dsca
-        .t_aldo = Record.t_aldo
-        .t_alre = Record.t_alre
-        .t_cspa = Record.t_cspa
-        .t_type = Record.t_type
-        .t_resp = Record.t_resp
-        .t_eunt = Record.t_eunt
-        .t_size = Record.t_size
-        .t_orgn = Record.t_orgn
-        .t_subm = Record.t_subm
-        .t_intr = Record.t_intr
-        .t_prod = Record.t_prod
-        .t_erec = Record.t_erec
-        .t_info = Record.t_info
-        .t_remk = Record.t_remk
-        .t_pldt = Record.t_pldt
-        .t_rele = Record.t_rele
-        .t_acdt = Record.t_acdt
-        .t_vend = Record.t_vend
-        .t_bpid = Record.t_bpid
-        .t_revd = Record.t_revd
-        .t_redt = Record.t_redt
-        .t_logn = Record.t_logn
-        .t_verk = Record.t_verk
-        .t_extn = Record.t_extn
-        .t_ofbp = Record.t_ofbp
-        .t_nama = Record.t_nama
-        .t_eogn = Record.t_eogn
-        .t_exdt = Record.t_exdt
-        .t_exrk = Record.t_exrk
-        .t_cler = Record.t_cler
-        .t_bloc = Record.t_bloc
-        .t_appr = Record.t_appr
-        .t_link = Record.t_link
-      End With
-      Return SIS.td.MasterDocument.InsertData(_Rec)
-    End Function
-    Public Shared Function InsertData(ByVal Record As SIS.td.MasterDocument) As SIS.td.MasterDocument
-      Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString)
-        Using Cmd As SqlCommand = Con.CreateCommand()
-          Cmd.CommandType = CommandType.StoredProcedure
-          Cmd.CommandText = "spMasterDocumentInsert"
+          Cmd.CommandText = "spMasterDocumentInsert_" & Comp
           SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@t_docn", SqlDbType.VarChar, 33, Record.t_docn)
           SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@t_revn", SqlDbType.VarChar, 33, Record.t_revn)
           SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@t_cprj", SqlDbType.VarChar, 10, Record.t_cprj)
@@ -601,53 +422,11 @@ Namespace SIS.td
       End Using
       Return Record
     End Function
-    <DataObjectMethod(DataObjectMethodType.Update, True)> _
-    Public Shared Function MasterDocumentUpdate(ByVal Record As SIS.td.MasterDocument) As SIS.td.MasterDocument
-      Dim _Rec As SIS.td.MasterDocument = SIS.td.MasterDocument.MasterDocumentGetByID(Record.t_docn, Record.t_revn)
-      With _Rec
-        .t_cprj = Record.t_cprj
-        .t_dsca = Record.t_dsca
-        .t_aldo = Record.t_aldo
-        .t_alre = Record.t_alre
-        .t_cspa = Record.t_cspa
-        .t_type = Record.t_type
-        .t_resp = Record.t_resp
-        .t_eunt = Record.t_eunt
-        .t_size = Record.t_size
-        .t_orgn = Record.t_orgn
-        .t_subm = Record.t_subm
-        .t_intr = Record.t_intr
-        .t_prod = Record.t_prod
-        .t_erec = Record.t_erec
-        .t_info = Record.t_info
-        .t_remk = Record.t_remk
-        .t_pldt = Record.t_pldt
-        .t_rele = Record.t_rele
-        .t_acdt = Record.t_acdt
-        .t_vend = Record.t_vend
-        .t_bpid = Record.t_bpid
-        .t_revd = Record.t_revd
-        .t_redt = Record.t_redt
-        .t_logn = Record.t_logn
-        .t_verk = Record.t_verk
-        .t_extn = Record.t_extn
-        .t_ofbp = Record.t_ofbp
-        .t_nama = Record.t_nama
-        .t_eogn = Record.t_eogn
-        .t_exdt = Record.t_exdt
-        .t_exrk = Record.t_exrk
-        .t_cler = Record.t_cler
-        .t_bloc = Record.t_bloc
-        .t_appr = Record.t_appr
-        .t_link = Record.t_link
-      End With
-      Return SIS.td.MasterDocument.UpdateData(_Rec)
-    End Function
-    Public Shared Function UpdateData(ByVal Record As SIS.td.MasterDocument) As SIS.td.MasterDocument
+    Public Shared Function UpdateData(ByVal Record As SIS.td.MasterDocument, Comp As String) As SIS.td.MasterDocument
       Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString)
         Using Cmd As SqlCommand = Con.CreateCommand()
           Cmd.CommandType = CommandType.StoredProcedure
-          Cmd.CommandText = "spMasterDocumentUpdate"
+          Cmd.CommandText = "spMasterDocumentUpdate_" & Comp
           SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@Original_t_docn", SqlDbType.VarChar, 33, Record.t_docn)
           SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@Original_t_revn", SqlDbType.VarChar, 33, Record.t_revn)
           SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@t_docn", SqlDbType.VarChar, 33, Record.t_docn)
@@ -697,64 +476,8 @@ Namespace SIS.td
       End Using
       Return Record
     End Function
-    <DataObjectMethod(DataObjectMethodType.Delete, True)> _
-    Public Shared Function MasterDocumentDelete(ByVal Record As SIS.td.MasterDocument) As Int32
-      Dim _Result As Integer = 0
-      Using Con As SqlConnection = New SqlConnection(SIS.SYS.SQLDatabase.DBCommon.GetBaaNConnectionString)
-        Using Cmd As SqlCommand = Con.CreateCommand()
-          Cmd.CommandType = CommandType.StoredProcedure
-          Cmd.CommandText = "spMasterDocumentDelete"
-          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@Original_t_docn", SqlDbType.VarChar, Record.t_docn.ToString.Length, Record.t_docn)
-          SIS.SYS.SQLDatabase.DBCommon.AddDBParameter(Cmd, "@Original_t_revn", SqlDbType.VarChar, Record.t_revn.ToString.Length, Record.t_revn)
-          Cmd.Parameters.Add("@RowCount", SqlDbType.Int)
-          Cmd.Parameters("@RowCount").Direction = ParameterDirection.Output
-          _RecordCount = -1
-          Con.Open()
-          Cmd.ExecuteNonQuery()
-          _RecordCount = Cmd.Parameters("@RowCount").Value
-        End Using
-      End Using
-      Return _RecordCount
-    End Function
     Public Sub New(ByVal Reader As SqlDataReader)
-      On Error Resume Next
-      _t_docn = CType(Reader("t_docn"), String)
-      _t_revn = CType(Reader("t_revn"), String)
-      _t_cprj = CType(Reader("t_cprj"), String)
-      _t_dsca = CType(Reader("t_dsca"), String)
-      _t_aldo = CType(Reader("t_aldo"), String)
-      _t_alre = CType(Reader("t_alre"), String)
-      _t_cspa = CType(Reader("t_cspa"), String)
-      _t_type = CType(Reader("t_type"), String)
-      _t_resp = CType(Reader("t_resp"), String)
-      _t_eunt = CType(Reader("t_eunt"), String)
-      _t_size = CType(Reader("t_size"), Int32)
-      _t_orgn = CType(Reader("t_orgn"), String)
-      _t_subm = CType(Reader("t_subm"), Int32)
-      _t_intr = CType(Reader("t_intr"), Int32)
-      _t_prod = CType(Reader("t_prod"), Int32)
-      _t_erec = CType(Reader("t_erec"), Int32)
-      _t_info = CType(Reader("t_info"), Int32)
-      _t_remk = CType(Reader("t_remk"), String)
-      _t_pldt = CType(Reader("t_pldt"), DateTime)
-      _t_rele = CType(Reader("t_rele"), Int32)
-      _t_acdt = CType(Reader("t_acdt"), DateTime)
-      _t_vend = CType(Reader("t_vend"), Int32)
-      _t_bpid = CType(Reader("t_bpid"), String)
-      _t_revd = CType(Reader("t_revd"), Int32)
-      _t_redt = CType(Reader("t_redt"), DateTime)
-      _t_logn = CType(Reader("t_logn"), String)
-      _t_verk = CType(Reader("t_verk"), String)
-      _t_extn = CType(Reader("t_extn"), Int32)
-      _t_ofbp = CType(Reader("t_ofbp"), String)
-      _t_nama = CType(Reader("t_nama"), String)
-      _t_eogn = CType(Reader("t_eogn"), String)
-      _t_exdt = CType(Reader("t_exdt"), DateTime)
-      _t_exrk = CType(Reader("t_exrk"), String)
-      _t_cler = CType(Reader("t_cler"), Int32)
-      _t_bloc = CType(Reader("t_bloc"), Int32)
-      _t_appr = CType(Reader("t_appr"), Int32)
-      _t_link = CType(Reader("t_link"), Int32)
+      SIS.SYS.SQLDatabase.DBCommon.NewObj(Me, Reader)
     End Sub
     Public Sub New()
     End Sub

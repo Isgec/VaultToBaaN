@@ -8,6 +8,18 @@ Public Class luXMLFile
   Public Property DCRNo As String = ""
   Public Property DocumentID As String = ""
   Public Property RevNo As String = ""
+  Public ReadOnly Property ERPCompany As String
+    Get
+      If VaultDB = "ISGEC REDECAM" Then
+        Return "700"
+      ElseIf VaultDB = "ISGEC COVEMA" Then
+        Return "651"
+      Else
+        Return "200"
+      End If
+    End Get
+  End Property
+
   Public Shared Function GetFile(ByVal FileName As String) As luXMLFile
     Dim lf As luXMLFile = Nothing
     Dim oXml As New XmlDocument

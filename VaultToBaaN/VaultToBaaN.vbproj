@@ -82,9 +82,6 @@
     <Reference Include="Autodesk.DataManagement.Client.Framework.Vault">
       <HintPath>bin\Autodesk.DataManagement.Client.Framework.Vault.dll</HintPath>
     </Reference>
-    <Reference Include="EDICommon">
-      <HintPath>..\..\BomExportEDI\EDICommon\bin\Debug\EDICommon.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.VisualBasic.PowerPacks, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.Web.Services3, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -136,8 +133,16 @@
     <Compile Include="App_DM\mstDocList.vb" />
     <Compile Include="App_DM\_DM.vb" />
     <Compile Include="App_DM\_MasterDocument.vb" />
-    <Compile Include="App_DM\_UZ_DM.vb" />
-    <Compile Include="App_DM\_UZ_MasterDocument.vb" />
+    <Compile Include="App_IssuedPO\erpData.vb" />
+    <Compile Include="App_IssuedPO\pakEnums.vb" />
+    <Compile Include="App_IssuedPO\_pakPO.vb" />
+    <Compile Include="App_IssuedPO\_pakPOBIDocuments.vb" />
+    <Compile Include="App_IssuedPO\_pakPOBItems.vb" />
+    <Compile Include="App_IssuedPO\_pakPOBOM.vb" />
+    <Compile Include="App_IssuedPO\_pakUnits.vb" />
+    <Compile Include="App_IssuedPO\_pakUnitSets.vb" />
+    <Compile Include="App_IssuedPO\_UZ_pakPOBIDocuments.vb" />
+    <Compile Include="App_IssuedPO\_UZ_pakPOBItems.vb" />
     <Compile Include="App_JodDistributer\lgJDClass.vb" />
     <Compile Include="App_LockUnlock\lgLUClass.vb" />
     <Compile Include="App_Main\frmMain.Designer.vb">

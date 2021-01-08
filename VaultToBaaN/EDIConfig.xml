@@ -2,11 +2,11 @@
 <Table>
   <Properties>
     <FieldName>JobDistributerInputPath</FieldName>
-    <FieldValue>D:\Temp\BomExportJobs</FieldValue>
+    <FieldValue>D:\Temp\Job</FieldValue>
   </Properties>
   <Properties>
     <FieldName>JobDistributerOutputPath</FieldName>
-    <FieldValue>D:\TEMP\VaultIntegration\Input</FieldValue>
+    <FieldValue>D:\TEMP\Input</FieldValue>
   </Properties>
   <Properties>
     <FieldName>JobDistributerDuplicateJobOutputPath</FieldName>
@@ -26,7 +26,7 @@
   </Properties>
   <Properties>
     <FieldName>BomExportEXEPath</FieldName>
-    <FieldValue>C:\VaultPlugins\JobProcesser</FieldValue>
+    <FieldValue>D:\JobProcesser</FieldValue>
   </Properties>
   <Properties>
     <FieldName>RestrictedBomExportEXENumber</FieldName>
@@ -45,23 +45,23 @@
   </Properties>
   <Properties>
     <FieldName>BomExportOutputPath</FieldName>
-    <FieldValue>D:\TEMP\VaultIntegration\Output</FieldValue>
+    <FieldValue>D:\TEMP\Output</FieldValue>
   </Properties>
   <Properties>
     <FieldName>BomExportPDFOutputPath</FieldName>
-    <FieldValue>D:\TEMP\VaultIntegration\PDF</FieldValue>
+    <FieldValue>D:\TEMP\PDF</FieldValue>
   </Properties>
   <Properties>
     <FieldName>XMLProcessorRestrictedOutputPath</FieldName>
-    <FieldValue>C:\Temp\Test</FieldValue>
+    <FieldValue>D:\Temp\Test</FieldValue>
   </Properties>
   <Properties>
     <FieldName>XMLProcessorCommonOutputPath</FieldName>
-    <FieldValue>D:\TEMP\VaultIntegration\EDIOutput\XML</FieldValue>
+    <FieldValue>D:\TEMP\XML</FieldValue>
   </Properties>
   <Properties>
     <FieldName>XMLProcessorErrorOutputPath</FieldName>
-    <FieldValue>F:\VaultIntegration\EDIOutput\Error</FieldValue>
+    <FieldValue>D:\Error</FieldValue>
   </Properties>
   <Properties>
     <FieldName>XMLProcessorInterval</FieldName>
@@ -77,11 +77,11 @@
   </Properties>
   <Properties>
     <FieldName>ERPLnLockFolder</FieldName>
-    <FieldValue>C:\TEMP\LockUnlock\Lock</FieldValue>
+    <FieldValue>D:\TEMP\Lock</FieldValue>
   </Properties>
   <Properties>
     <FieldName>ERPLnUnlockFolder</FieldName>
-    <FieldValue>C:\TEMP\LockUnlock\Unlock</FieldValue>
+    <FieldValue>D:\TEMP\Unlock</FieldValue>
   </Properties>
   <Properties>
     <FieldName>LockUnlockInterval</FieldName>
@@ -89,11 +89,11 @@
   </Properties>
   <Properties>
     <FieldName>ERPLnXMLProcessedFolder</FieldName>
-    <FieldValue>D:\TEMP\Boiler\ProcessedXML</FieldValue>
+    <FieldValue>D:\TEMP\ProcessedXML</FieldValue>
   </Properties>
   <Properties>
     <FieldName>ERPLnXMLErrorFolder</FieldName>
-    <FieldValue>C:\TEMP\Boiler\Errorxml</FieldValue>
+    <FieldValue>C:\TEMP\Errorxml</FieldValue>
   </Properties>
   <Properties>
     <FieldName>AlertIfNotProcessedTill</FieldName>
