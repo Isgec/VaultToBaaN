@@ -120,6 +120,7 @@
     <Compile Include="App_Common\AppConfigs.vb" />
     <Compile Include="App_Common\dataXML.vb" />
     <Compile Include="App_Common\jobFile.vb" />
+    <Compile Include="App_Common\logBaaNTransfer.vb" />
     <Compile Include="App_Common\Monitor.vb" />
     <Compile Include="App_Common\TimerSupport.vb" />
     <Compile Include="App_Common\winApi.vb" />

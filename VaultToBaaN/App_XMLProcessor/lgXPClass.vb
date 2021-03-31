@@ -165,6 +165,24 @@ Public Class XmlProcessor
             End If
             If tmpXML.State = 1 Then Continue For 'process next time, If PDF file is available, this will never happen
             If tmpXML.State = 2 Or tmpXML.State = 3 Then 'ISGEC Specific Error in XML, Send E-Mail & Move file to error
+              '====Log error====
+              Dim log As New SIS.LOG.logBaaNTransfer
+              With log
+                .DocumentID = tmpXML.number
+                .StepDescription = "XML Validator"
+                .StepError = ""
+                .IsError = True
+                .Job_UserID = tmpXML.VaultClientMachine
+                .Job_CreatedBy = tmpXML.VaultUserName
+                .Job_CreationDate = tmpXML.VaultSubmittedDate
+                .Job_CreationTime = tmpXML.VaultSubmittedDate
+                For Each e As String In tmpXML.Errors
+                  .StepError &= e & vbCrLf
+                Next
+                If .StepError.Length > 500 Then .StepError = .StepError.Substring(0, 500)
+              End With
+              SIS.LOG.logBaaNTransfer.InsertData(log)
+              '================
               Try
                 dataXML.SendMail(tmpXML)
               Catch ex As Exception

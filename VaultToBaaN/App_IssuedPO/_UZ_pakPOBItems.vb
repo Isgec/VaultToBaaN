@@ -425,7 +425,7 @@ Namespace SIS.PAK
         Sql &= " and DocumentRevision =(select isnull(max(c.DocumentRevision),'') from PAK_Documents as c where c.DocumentID='" & doc & "' and c.DocumentRevision < '" & n_rev & "')"
         Sql &= " Select * From PAK_Documents "
         Sql &= " where "
-        Sql &= " and DocumentID='" & doc & "'"
+        Sql &= " DocumentID='" & doc & "'"
         Sql &= " and DocumentRevision ='" & n_rev & "'"
         Using Cmd As SqlCommand = Con.CreateCommand()
           Cmd.CommandType = CommandType.Text

@@ -97,6 +97,8 @@ Namespace SIS.SYS.SQLDatabase
                       CallByName(this, pi.Name, CallType.Let, "0.00")
                     Case "bit"
                       CallByName(this, pi.Name, CallType.Let, Boolean.FalseString)
+                    Case "bigint"
+                      CallByName(this, pi.Name, CallType.Let, 0)
                     Case Else
                       CallByName(this, pi.Name, CallType.Let, String.Empty)
                   End Select

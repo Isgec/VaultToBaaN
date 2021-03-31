@@ -272,6 +272,29 @@ ret:
         LastRevision = Right("00" & (Convert.ToInt32(.rev) - 1).ToString, 2)
         'To be done Latter
       End If
+      '=====Validate Item======
+      With oXml.ChildNodes(1).ChildNodes(1)
+        For I As Integer = 0 To .ChildNodes.Count - 1
+          Dim chNd As XmlNode = .ChildNodes(I)
+          If chNd.Attributes("item_code").Value.Trim <> String.Empty Then
+            If Not IsPositiveNumber(chNd.Attributes("it.qty").Value.Trim) Then
+              lf.Errors.Add("Invalid Quantity at Item Line: " & I + 1)
+            End If
+            If Not IsPositiveNumber(chNd.Attributes("it.wt").Value.Trim) Then
+              lf.Errors.Add("Invalid Weight at Item Line: " & I + 1)
+            End If
+            For J As Integer = 0 To chNd.ChildNodes(0).ChildNodes.Count - 1
+              Dim ptNd As XmlNode = chNd.ChildNodes(0).ChildNodes(J)
+              If Not IsPositiveNumber(ptNd.Attributes("p_qty").Value.Trim) Then
+                lf.Errors.Add("Invalid Part Quantity at Part Item: " & J + 1 & " of Item Line: " & I + 1)
+              End If
+              If Not IsPositiveNumber(ptNd.Attributes("p_wt").Value.Trim) Then
+                lf.Errors.Add("Invalid Part Weight at Part Item: " & J + 1 & " of Item Line: " & I + 1)
+              End If
+            Next
+          End If
+        Next
+      End With
       '========================
       If .Errors.Count <= 0 Then
         .State = 0
@@ -299,6 +322,18 @@ ret:
 mErr:
     lf.State = 3
     Return lf
+  End Function
+  Public Shared Function IsPositiveNumber(x As String) As Boolean
+    If x = "-" Then Return True
+    For I As Integer = 0 To x.Length - 1
+      Dim ch As String = x.Substring(I, 1)
+      If ch >= "0" And ch <= "9" Then
+      ElseIf ch = "." Then
+      Else
+        Return False
+      End If
+    Next
+    Return True
   End Function
   Public Shared Function IsFileAvailable(ByVal FilePath As String) As Boolean
     If Not IO.File.Exists(FilePath) Then Return False
