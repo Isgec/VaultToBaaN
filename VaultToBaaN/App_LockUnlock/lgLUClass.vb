@@ -324,7 +324,7 @@ Public Class LockUnlockService
   Private Function Login(ByVal fl As luXMLFile) As Boolean
     VaultUtil.userName = "VAULTPROCESS"
     VaultUtil.password = "VAULTPROCESS"
-    VaultUtil.serverName = "192.9.200.119"
+    VaultUtil.serverName = "bramha"
     VaultUtil.vaultName = fl.VaultDB
     If fl.VaultDB <> String.Empty Then
       Try

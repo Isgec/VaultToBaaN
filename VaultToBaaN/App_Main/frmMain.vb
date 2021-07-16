@@ -387,7 +387,7 @@ Public Class frmMain
   Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
     VaultUtil.userName = "VAULTPROCESS"
     VaultUtil.password = "VAULTPROCESS"
-    VaultUtil.serverName = "192.9.200.119"
+    VaultUtil.serverName = "bramha"
     VaultUtil.vaultName = "SMD"
     Try
       VaultUtil.LogInStandard(VaultUtil.serverName, VaultUtil.vaultName, VaultUtil.userName, VaultUtil.password)

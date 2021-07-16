@@ -268,7 +268,7 @@ Public Class VaultUtil
   Public Shared Function Login(ByVal VaultDB As String) As Boolean
     VaultUtil.userName = "VAULTPROCESS"
     VaultUtil.password = "VAULTPROCESS"
-    VaultUtil.serverName = "192.9.200.119"
+    VaultUtil.serverName = "bramha"
     VaultUtil.vaultName = VaultDB
     Try
       VaultUtil.LogInStandard(VaultUtil.serverName, VaultUtil.vaultName, VaultUtil.userName, VaultUtil.password)
